@@ -7,19 +7,36 @@
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import type { Progress } from "./progress";
 
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const KEY = process.env.NEXT_PUBLIC_SUPABASE_KEY;
+// Trimmed, and stripped of quotes, in case they were pasted along with the value.
+const clean = (v: string | undefined) => v?.trim().replace(/^["']|["']$/g, "").trim() || undefined;
+const URL = clean(process.env.NEXT_PUBLIC_SUPABASE_URL);
+const KEY = clean(process.env.NEXT_PUBLIC_SUPABASE_KEY);
 
 let client: SupabaseClient | null = null;
+let configError: string | null = null;
 
 export function accountsEnabled(): boolean {
   return Boolean(URL && KEY);
 }
 
+/** The Supabase client, or null when accounts are off or set up wrong (never throws). */
 export function supabase(): SupabaseClient | null {
   if (!accountsEnabled() || typeof window === "undefined") return null;
-  if (!client) client = createClient(URL!, KEY!);
+  if (!client && !configError) {
+    try {
+      client = createClient(URL!, KEY!);
+    } catch (err) {
+      configError = err instanceof Error ? err.message : String(err);
+      console.error("Govori: Supabase could not start:", configError);
+    }
+  }
   return client;
+}
+
+/** Why accounts could not start, if they couldn't (shown on the account page). */
+export function accountsError(): string | null {
+  supabase();
+  return configError;
 }
 
 export async function getSession(): Promise<Session | null> {

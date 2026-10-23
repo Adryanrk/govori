@@ -30,6 +30,7 @@ export default function Landing() {
           <a href="#method">Method</a>
           <a href="#alphabet">Alphabet</a>
           <a href="#path">Path</a>
+          <Link href="/account">Log in</Link>
           <Link href="/today" className="btn btn-red" style={{ minHeight: 44, padding: "0 20px", fontSize: 15 }}>
             Start Day 1
           </Link>

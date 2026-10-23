@@ -2,16 +2,18 @@
 
 import type { Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
-import { accountsEnabled, supabase } from "./sync";
+import { accountsEnabled, accountsError, supabase } from "./sync";
 
 /** The signed-in session (null when signed out), kept up to date. */
 export function useAccount() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const sb = supabase();
     if (!sb) {
+      setError(accountsError());
       setReady(true);
       return;
     }
@@ -23,5 +25,5 @@ export function useAccount() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  return { enabled: accountsEnabled(), session, ready };
+  return { enabled: accountsEnabled() && !error, session, ready, error };
 }

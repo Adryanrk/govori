@@ -8,7 +8,7 @@ import { load, saveLocal, streak } from "@/lib/progress";
 import { pullAndMerge, supabase } from "@/lib/sync";
 
 export default function AccountPage() {
-  const { enabled, session, ready } = useAccount();
+  const { enabled, session, ready, error } = useAccount();
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -72,7 +72,20 @@ export default function AccountPage() {
         </p>
       </header>
 
-      {!enabled && (
+      {ready && error && (
+        <section className="card" style={{ padding: 28, maxWidth: 620, display: "flex", flexDirection: "column", gap: 10, borderColor: "var(--red-line)" }}>
+          <h2 style={{ margin: 0, fontSize: 17 }}>Accounts are switched on, but set up wrong</h2>
+          <p style={{ margin: 0 }} className="muted">
+            Supabase says: <b className="red">{error}</b>
+          </p>
+          <p style={{ margin: 0, fontSize: 14 }} className="muted">
+            Check NEXT_PUBLIC_SUPABASE_URL in Vercel. It should look exactly like https://abcdefgh.supabase.co, with no quotes or spaces.
+            Then redeploy.
+          </p>
+        </section>
+      )}
+
+      {ready && !enabled && !error && (
         <section className="card" style={{ padding: 28, maxWidth: 560 }}>
           <p style={{ margin: 0 }} className="muted">
             Accounts aren’t switched on for this site yet. Your progress is saved in this browser.
