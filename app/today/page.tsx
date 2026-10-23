@@ -33,7 +33,7 @@ export default function TodayPage() {
   const s = streak(progress);
   const allDone = DAYS.every((d) => progress.completedDays[d.n]);
   const due = dueItemIds(progress).length;
-  const check1 = progress.weekChecks[1];
+  const currentWeek = day.week;
 
   return (
     <AppShell reviewCount={due}>
@@ -88,8 +88,12 @@ export default function TodayPage() {
             <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Your path</h2>
             <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column" }}>
               {[
-                { code: "Аа", name: "Week 1 · Alphabet and sounds", note: allDone ? "Complete" : "You are here", state: "now" },
-                { code: "A1", name: "Weeks 2–16 · Beginner", note: "About 780 words, ending with the A1 test", state: "next" },
+                currentWeek === 1
+                  ? { code: "Аа", name: "Week 1 · Alphabet and sounds", note: "You are here", state: "now" }
+                  : { code: "Аа", name: "Week 1 · Alphabet and sounds", note: "Complete", state: "" },
+                currentWeek === 1
+                  ? { code: "A1", name: "Weeks 2–16 · Beginner", note: "About 780 words, ending with the A1 test", state: "next" }
+                  : { code: "A1", name: "Weeks 2–16 · Beginner", note: `You are here: week ${currentWeek} of 16`, state: "now" },
                 { code: "A2", name: "Elementary → C2", note: "Unfolds as you go", state: "" },
               ].map((l, i, arr) => (
                 <li key={l.code} style={{ display: "flex", gap: 14 }}>
@@ -162,7 +166,8 @@ export default function TodayPage() {
               const t = TINTS[i % TINTS.length];
               const isDone = Boolean(progress.completedDays[d.n]);
               const isCurrent = d.n === n && !allDone;
-              const failed = d.check && !isDone && check1 && check1.parts.some((p) => !p.total || p.correct / p.total < PASS_MARK);
+              const res = progress.weekChecks[d.week];
+              const failed = d.check && !isDone && res && res.parts.some((p) => !p.total || p.correct / p.total < PASS_MARK);
               return (
                 <Link key={d.n} href={`/day/${d.n}`} className={`day-tile${isCurrent ? " current" : ""}`}>
                   <span

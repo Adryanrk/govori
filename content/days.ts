@@ -7,19 +7,21 @@
 import { LETTERS } from "./letters";
 import type { Day, Item, Letter, Step, Tier, Week, Word } from "./types";
 import { WEEK1, WEEK1_DAYS, WEEK1_WORDS } from "./week-01";
+import { WEEK2, WEEK2_DAYS, WEEK2_WORDS } from "./week-02";
 
 export * from "./types";
 export { LETTERS };
 
-export const WORDS: Word[] = [...WEEK1_WORDS];
-export const DAYS: Day[] = [...WEEK1_DAYS];
+export const WORDS: Word[] = [...WEEK1_WORDS, ...WEEK2_WORDS];
+export const DAYS: Day[] = [...WEEK1_DAYS, ...WEEK2_DAYS];
 
 /** Weeks that exist, followed by the planned ones (from the A1 plan) shown as "coming". */
 export const WEEKS: Week[] = [
   WEEK1,
-  { n: 2, title: "Hello, this is me", subtitle: "Introduce yourself, names, он and она.", days: [] },
+  WEEK2,
   { n: 3, title: "Family", subtitle: "Family and friends, мой and моя́, plurals.", days: [] },
   { n: 4, title: "Numbers and money", subtitle: "0 to 100, prices, the kiosk.", days: [] },
+  { n: 5, title: "What do you do?", subtitle: "Jobs, languages and your first verbs.", days: [] },
 ];
 
 const ITEMS = new Map<string, Item>([...LETTERS, ...WORDS].map((i) => [i.id, i]));
