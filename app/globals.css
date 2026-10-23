@@ -1,5 +1,9 @@
 /* ───────────── Govori design tokens ───────────── */
 :root {
+  --font-unbounded: "Unbounded";
+  --font-manrope: "Manrope";
+  --font-mono: "JetBrains Mono";
+
   --ink: #0b1330;
   --ink-2: #3b4466;
   --muted: #5a6385;
