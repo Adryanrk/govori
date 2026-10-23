@@ -6,7 +6,8 @@ import { AppShell } from "@/components/AppShell";
 import { DayPlan } from "@/components/DayPlan";
 import { Icon, Ru } from "@/components/ui";
 import { DAYS, dayItems, getDay } from "@/content/days";
-import { useProgress } from "@/lib/progress";
+import { warmupStep } from "@/lib/plan";
+import { PASS_MARK, useProgress } from "@/lib/progress";
 
 /** Overview of one day: pick your time, run the whole day, or practise a single step. */
 export default function DayOverviewPage() {
@@ -50,9 +51,28 @@ export default function DayOverviewPage() {
       </header>
 
       <div className="split">
-        <DayPlan day={day} minutes={progress.minutes} onMinutes={(t) => update((p) => ({ ...p, minutes: t }))} done={Boolean(doneOn)} />
+        <DayPlan day={day} minutes={progress.minutes} onMinutes={(t) => update((p) => ({ ...p, minutes: t }))} done={Boolean(doneOn)}
+          warmup={warmupStep(progress)}
+        />
 
         <div className="side rise-3">
+          {day.check && progress.weekChecks[day.week] && (
+            <section className="card" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Your last result</h2>
+              {progress.weekChecks[day.week].parts.map((pt) => {
+                const ok = pt.total > 0 && pt.correct / pt.total >= PASS_MARK;
+                return (
+                  <div key={pt.name} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 15 }}>
+                    <span>{pt.name}</span>
+                    <span className="mono" style={{ color: ok ? "var(--blue)" : "var(--red-text)", fontWeight: 500 }}>
+                      {pt.correct}/{pt.total} {ok ? "✓" : "✗"}
+                    </span>
+                  </div>
+                );
+              })}
+            </section>
+          )}
+          {letters.length + words.length > 0 && (
           <section className="card" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
             <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>In this day</h2>
             {letters.length > 0 && (
@@ -84,6 +104,7 @@ export default function DayOverviewPage() {
               </div>
             )}
           </section>
+          )}
 
           <section className="milestone" style={{ background: doneOn ? "var(--red-soft)" : "#fff", borderColor: doneOn ? "var(--red-line)" : "var(--line)" }}>
             <span className="icon" aria-hidden="true" style={doneOn ? undefined : { background: "var(--paper)", color: "var(--muted)" }}>

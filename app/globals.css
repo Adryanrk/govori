@@ -955,7 +955,12 @@ a.day-tile:hover {
   border-color: var(--line-2);
   color: var(--ink-2);
 }
+/* Stressed vowel: red on light surfaces, coral on dark ones (for contrast). */
 .stress-mark {
+  color: var(--red-text);
+}
+.night .stress-mark,
+.cta .stress-mark {
   color: var(--coral);
 }
 
@@ -1357,4 +1362,192 @@ a.day-tile:hover {
 .plan-link:focus-visible .plan-go {
   opacity: 1;
   transform: translateX(0);
+}
+
+/* ───────────── Quiz extras ───────────── */
+.quiz-prompt .mid {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.1;
+}
+.listen-btn {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease), background 0.2s;
+}
+.listen-btn:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ───────────── Typing ───────────── */
+.type-field {
+  min-height: 72px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  border: 2px solid var(--line-2);
+  background: #fff;
+  font-family: var(--f-display);
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  word-break: break-all;
+}
+.type-field.right {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+.type-field.wrong {
+  border-color: var(--red);
+  background: var(--red-soft);
+}
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 34px;
+  background: var(--blue);
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.kbd {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 18px;
+  background: var(--mist);
+}
+.kbd-row {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+.kbd-key {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 52px;
+  height: 46px;
+  border-radius: 10px;
+  border: 0;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 19px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 0 var(--line-3);
+  transition: background 0.1s, transform 0.1s;
+}
+.kbd-key:active {
+  transform: translateY(1px);
+  background: var(--blue-soft);
+}
+.kbd-key.wide {
+  flex: 3 1 0;
+  max-width: 220px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+/* ───────────── Grammar cards ───────────── */
+.grammar {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.g-table {
+  border-collapse: collapse;
+  min-width: 100%;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  font-size: 16px;
+}
+.g-table th,
+.g-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.g-table th {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--paper);
+  font-weight: 500;
+}
+.g-table tr:last-child td {
+  border-bottom: 0;
+}
+.g-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.g-example {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+.g-rule {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: #fff;
+}
+.g-rule .stress-mark {
+  color: var(--coral);
+}
+
+/* ───────────── Forms ───────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.field input {
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  font: inherit;
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--ink);
+  background: #fff;
+}
+.field input:focus {
+  outline: 3px solid var(--blue-soft);
+  border-color: var(--blue);
+}
+.field small {
+  font-weight: 400;
 }

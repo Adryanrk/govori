@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { stepsFor, type Day, type Tier } from "@/content/days";
+import { stepsFor, type Day, type Step, type Tier } from "@/content/days";
 import { Icon, Ru } from "./ui";
 
 const TIMES: Tier[] = [10, 20, 45];
@@ -15,13 +15,16 @@ export function DayPlan({
   minutes,
   onMinutes,
   done,
+  warmup = null,
 }: {
   day: Day;
   minutes: Tier;
   onMinutes: (t: Tier) => void;
   done: boolean;
+  /** Review step that runs first when earlier items are due. */
+  warmup?: Step | null;
 }) {
-  const plan = stepsFor(day, minutes);
+  const plan = [...(warmup && !day.check ? [warmup] : []), ...stepsFor(day, minutes)];
   const total = plan.reduce((s, x) => s + x.minutes, 0);
 
   return (
@@ -43,6 +46,12 @@ export function DayPlan({
         </div>
       </div>
       <div style={{ padding: "28px 32px 32px", display: "flex", flexDirection: "column", gap: 24 }}>
+        {day.check ? (
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6 }} className="muted">
+            Five short parts, about 17 minutes. Each part needs 66 % to pass. Nothing gets locked: if a part goes wrong, you
+            will see which days to run again.
+          </p>
+        ) : (
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
           <span id={`time-${day.n}`} style={{ fontWeight: 600, fontSize: 15 }}>
             Time today
@@ -55,11 +64,18 @@ export function DayPlan({
             ))}
           </div>
         </div>
+        )}
         <ol className="plan" key={minutes}>
           {plan.map((step, i) => (
             <li key={step.id} style={{ animationDelay: `${i * 40}ms`, padding: 0 }}>
-              <Link href={`/day/${day.n}/play?step=${step.id}`} className="plan-link" aria-label={`Practise only: ${step.title}`}>
-                <span className="num">{String(i + 1).padStart(2, "0")}</span>
+              <Link
+                href={step.id === "warmup" ? "/review" : `/day/${day.n}/play?step=${step.id}`}
+                className="plan-link"
+                aria-label={`Practise only: ${step.title}`}
+              >
+                <span className="num" style={step.id === "warmup" ? { background: "var(--red-soft)", color: "var(--red-text)" } : undefined}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <span style={{ flex: "1 1 auto", minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
                   <span style={{ fontWeight: 600, fontSize: 15 }}>{step.title}</span>
                   <span style={{ fontSize: 14 }} className="muted">
@@ -81,7 +97,8 @@ export function DayPlan({
             {plan.length} steps · about {total} minutes · tap a step to practise just that one
           </span>
           <Link href={`/day/${day.n}/play`} className="btn btn-red">
-            {done ? `Run Day ${day.n} again` : `Start Day ${day.n}`} <Icon name="arrow" />
+            {day.check ? (done ? "Take the check again" : "Start the check") : done ? `Run Day ${day.n} again` : `Start Day ${day.n}`}{" "}
+            <Icon name="arrow" />
           </Link>
         </div>
       </div>

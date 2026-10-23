@@ -4,8 +4,9 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { DayPlan } from "@/components/DayPlan";
 import { Icon, Ru } from "@/components/ui";
-import { COMING_UP, DAYS, LETTERS, getDay } from "@/content/days";
-import { currentDay, learned, streak, useProgress } from "@/lib/progress";
+import { DAYS, LETTERS, WEEKS, getDay } from "@/content/days";
+import { warmupStep } from "@/lib/plan";
+import { PASS_MARK, currentDay, dueItemIds, learned, streak, useProgress } from "@/lib/progress";
 
 const TINTS = [
   { bg: "#EEF2FF", fg: "rgba(47,91,234,0.35)" },
@@ -31,10 +32,11 @@ export default function TodayPage() {
   const { letters, words } = learned(progress);
   const s = streak(progress);
   const allDone = DAYS.every((d) => progress.completedDays[d.n]);
-  const reviewCount = letters + words;
+  const due = dueItemIds(progress).length;
+  const check1 = progress.weekChecks[1];
 
   return (
-    <AppShell reviewCount={reviewCount > 0 ? Math.min(reviewCount, 12) : 0}>
+    <AppShell reviewCount={due}>
       <header style={{ display: "flex", flexDirection: "column", gap: 10 }} className="rise">
         <span className="eyebrow">Today · Day {n}</span>
         <h1 className="display page-title">
@@ -43,7 +45,7 @@ export default function TodayPage() {
         </h1>
         <p style={{ margin: 0, fontSize: 17 }} className="muted">
           {allDone
-            ? "You have finished the whole alphabet. Run any day again, or review while the next days are being written."
+            ? "You have finished everything written so far. Review, or run any day again, while the next week is being written."
             : s > 0
               ? `You are on a ${s}-day streak. How much time do you have today?`
               : `Day ${n} is ready. How much time do you have today?`}
@@ -57,6 +59,7 @@ export default function TodayPage() {
           minutes={minutes}
           onMinutes={(t) => update((p) => ({ ...p, minutes: t }))}
           done={Boolean(progress.completedDays[day.n])}
+          warmup={warmupStep(progress)}
         />
 
         {/* SIDE */}
@@ -85,8 +88,8 @@ export default function TodayPage() {
             <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Your path</h2>
             <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column" }}>
               {[
-                { code: "Аа", name: "Alphabet", note: allDone ? "Complete" : "You are here", state: "now" },
-                { code: "A1", name: "Beginner", note: "Greetings, numbers, first sentences", state: "next" },
+                { code: "Аа", name: "Week 1 · Alphabet and sounds", note: allDone ? "Complete" : "You are here", state: "now" },
+                { code: "A1", name: "Weeks 2–16 · Beginner", note: "About 780 words, ending with the A1 test", state: "next" },
                 { code: "A2", name: "Elementary → C2", note: "Unfolds as you go", state: "" },
               ].map((l, i, arr) => (
                 <li key={l.code} style={{ display: "flex", gap: 14 }}>
@@ -111,15 +114,15 @@ export default function TodayPage() {
             </ol>
           </section>
 
-          {reviewCount > 0 ? (
+          {due > 0 ? (
             <Link href="/review" className="card" style={{ padding: 24, display: "flex", gap: 14, alignItems: "center", textDecoration: "none" }}>
               <span className="num" aria-hidden="true">
                 <Icon name="review" />
               </span>
               <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-                <span style={{ fontWeight: 600, fontSize: 15 }}>Quick review</span>
+                <span style={{ fontWeight: 600, fontSize: 15 }}>Review due</span>
                 <span style={{ fontSize: 14 }} className="muted">
-                  {letters} letters and {words} words to keep fresh
+                  {due} {due === 1 ? "thing" : "things"} ready to refresh today
                 </span>
               </span>
               <Icon name="arrow" />
@@ -130,9 +133,11 @@ export default function TodayPage() {
                 <Icon name="review" />
               </span>
               <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <span style={{ fontWeight: 600, fontSize: 15 }}>Nothing to review yet</span>
+                <span style={{ fontWeight: 600, fontSize: 15 }}>{letters + words > 0 ? "All caught up" : "Nothing to review yet"}</span>
                 <span style={{ fontSize: 14, lineHeight: 1.5 }} className="muted">
-                  Reviews start once you finish your first day.
+                  {letters + words > 0
+                    ? "Nothing is due today. Things you learn come back right before you would forget them."
+                    : "Reviews start once you finish your first day."}
                 </span>
               </span>
             </section>
@@ -140,44 +145,59 @@ export default function TodayPage() {
         </div>
       </div>
 
-      {/* ALL DAYS */}
-      <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Your days</h2>
-          <span style={{ fontSize: 14 }} className="muted">
-            Every day is open. Jump ahead or run one again whenever you like.
-          </span>
-        </div>
-        <div className="days">
-          {DAYS.map((d, i) => {
-            const t = TINTS[i % TINTS.length];
-            const isDone = Boolean(progress.completedDays[d.n]);
-            const isCurrent = d.n === n && !allDone;
-            return (
-              <Link key={d.n} href={`/day/${d.n}`} className={`day-tile${isCurrent ? " current" : ""}`}>
-                <span lang="ru" aria-hidden="true" className="art" style={{ background: t.bg, color: t.fg }}>
-                  {d.glyph}
-                </span>
-                <span className="body">
-                  <span className="mono" style={{ fontSize: 12, fontWeight: 500, color: isCurrent ? "var(--red-text)" : isDone ? "var(--blue)" : "var(--muted)" }}>
-                    DAY {d.n}
-                    {isCurrent ? " · UP NEXT" : isDone ? " · DONE ✓" : ""}
+      {/* WEEKS */}
+      {WEEKS.filter((w) => w.days.length > 0).map((w) => (
+        <section key={w.n} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
+              Week {w.n} · {w.title}
+            </h2>
+            <span style={{ fontSize: 14 }} className="muted">
+              Every day is open. Jump ahead or run one again whenever you like.
+            </span>
+          </div>
+          <div className="days">
+            {w.days.map((dn, i) => {
+              const d = getDay(dn)!;
+              const t = TINTS[i % TINTS.length];
+              const isDone = Boolean(progress.completedDays[d.n]);
+              const isCurrent = d.n === n && !allDone;
+              const failed = d.check && !isDone && check1 && check1.parts.some((p) => !p.total || p.correct / p.total < PASS_MARK);
+              return (
+                <Link key={d.n} href={`/day/${d.n}`} className={`day-tile${isCurrent ? " current" : ""}`}>
+                  <span
+                    lang="ru"
+                    aria-hidden="true"
+                    className="art"
+                    style={d.check ? { background: "var(--ink)", color: "rgba(255,255,255,0.18)" } : { background: t.bg, color: t.fg }}
+                  >
+                    {d.glyph}
                   </span>
-                  <span style={{ fontWeight: 600, fontSize: 15 }}>{d.title}</span>
-                </span>
-              </Link>
-            );
-          })}
-          {COMING_UP.map((d) => (
-            <div key={d.n} className="day-tile soon" aria-label={`Day ${d.n}, ${d.title}, coming soon`}>
-              <span lang="ru" aria-hidden="true" className="art" style={{ background: "#F1F3F8", color: "rgba(11,19,48,0.15)" }}>
-                {d.glyph}
+                  <span className="body">
+                    <span className="mono" style={{ fontSize: 12, fontWeight: 500, color: isCurrent ? "var(--red-text)" : isDone ? "var(--blue)" : "var(--muted)" }}>
+                      DAY {d.n}
+                      {isDone ? " · DONE ✓" : failed ? " · TRY AGAIN" : isCurrent ? " · UP NEXT" : ""}
+                    </span>
+                    <span style={{ fontWeight: 600, fontSize: 15 }}>{d.title}</span>
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+
+      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Coming next</h2>
+        <div className="days">
+          {WEEKS.filter((w) => w.days.length === 0).map((w) => (
+            <div key={w.n} className="card" style={{ flex: "1 1 220px", padding: 20, display: "flex", flexDirection: "column", gap: 6, opacity: 0.75 }}>
+              <span className="mono muted" style={{ fontSize: 12 }}>
+                WEEK {w.n} · SOON
               </span>
-              <span className="body">
-                <span className="mono muted" style={{ fontSize: 12 }}>
-                  DAY {d.n} · SOON
-                </span>
-                <span style={{ fontWeight: 600, fontSize: 15 }}>{d.title}</span>
+              <span style={{ fontWeight: 600, fontSize: 15 }}>{w.title}</span>
+              <span className="muted" style={{ fontSize: 14 }}>
+                <Ru text={w.subtitle} />
               </span>
             </div>
           ))}

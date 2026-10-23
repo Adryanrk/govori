@@ -10,6 +10,7 @@ const NAV = [
   { href: "/today", label: "Today", icon: <Icon name="sun" /> },
   { href: "/alphabet", label: "Alphabet", icon: <span aria-hidden="true" lang="ru" style={{ width: 18, textAlign: "center", fontFamily: "var(--f-display)", fontSize: 13 }}>Ж</span> },
   { href: "/review", label: "Review", icon: <Icon name="review" /> },
+  { href: "/account", label: "Account", icon: <Icon name="user" /> },
 ];
 
 export function AppShell({ children, reviewCount = 0 }: { children: ReactNode; reviewCount?: number }) {

@@ -1,36 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Question } from "@/lib/quiz";
 import { speak } from "@/lib/speak";
 import { Icon, Ru } from "./ui";
 
+const HAS_RU = /[а-яё]/i;
+
 /**
- * One question at a time. Calls onDone(correct, total) after the last one.
+ * One question at a time. Calls onAnswer(itemId, correct) on the first try of
+ * each question (for spaced repetition) and onDone(correct, total) at the end.
  * Wrong answers are asked again at the end, so you always finish on a win.
  */
-export function Quiz({ questions, onDone }: { questions: Question[]; onDone: (correct: number, total: number) => void }) {
+export function Quiz({
+  questions,
+  onDone,
+  onAnswer,
+}: {
+  questions: Question[];
+  onDone: (correct: number, total: number) => void;
+  onAnswer?: (itemId: string, correct: boolean) => void;
+}) {
   const [queue, setQueue] = useState<Question[]>(questions);
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [firstTry, setFirstTry] = useState(0);
 
   const q = queue[index];
+
+  // Listening questions play on their own.
+  useEffect(() => {
+    if (q?.audioOnly) {
+      const t = setTimeout(() => speak(q.say), 350);
+      return () => clearTimeout(t);
+    }
+  }, [q, index]);
+
   if (!q) return null;
   const answered = picked !== null;
   const right = picked === q.answer;
+  const longPrompt = [...q.prompt].length > 14;
 
   function pick(option: string) {
     if (answered) return;
     setPicked(option);
-    speak(q.say);
-    if (option === q.answer) {
-      // Only the first pass counts toward the score.
-      if (index < questions.length) setFirstTry((n) => n + 1);
-    } else {
-      // Ask it again at the end.
-      setQueue((qs) => [...qs, { ...q, options: [...q.options].reverse() }]);
+    if (!q.audioOnly) speak(q.say);
+    const ok = option === q.answer;
+    // Only the first pass counts toward the score and the review schedule.
+    if (index < questions.length) {
+      if (ok) setFirstTry((n) => n + 1);
+      if (q.itemId) onAnswer?.(q.itemId, ok);
     }
+    if (!ok) setQueue((qs) => [...qs, { ...q, options: [...q.options].reverse() }]);
   }
 
   function next() {
@@ -50,7 +71,20 @@ export function Quiz({ questions, onDone }: { questions: Question[]; onDone: (co
           : `Retry ${index - questions.length + 1} of ${queue.length - questions.length}`}
       </div>
       <div key={index} className="quiz-prompt night step-enter">
-        <Ru text={q.prompt} className="big" />
+        {q.audioOnly ? (
+          <>
+            <button type="button" className="listen-btn" onClick={() => speak(q.say)} aria-label="Play again">
+              <Icon name="sound" size={34} />
+            </button>
+            {answered && <Ru text={q.prompt} className="big" />}
+          </>
+        ) : longPrompt && !HAS_RU.test(q.prompt) ? (
+          <span className="display" style={{ fontSize: "clamp(22px, 3vw, 30px)", lineHeight: 1.25, maxWidth: 520 }}>
+            {q.prompt}
+          </span>
+        ) : (
+          <Ru text={q.prompt} className={longPrompt ? "mid" : "big"} />
+        )}
         <span style={{ color: "var(--night-text)", fontSize: 15 }}>{q.ask}</span>
       </div>
       <div className="options" role="group" aria-label="Answers">
@@ -60,7 +94,7 @@ export function Quiz({ questions, onDone }: { questions: Question[]; onDone: (co
           else if (answered && o === picked) cls += " wrong";
           return (
             <button key={o} type="button" className={cls} disabled={answered} onClick={() => pick(o)}>
-              {o}
+              {HAS_RU.test(o) ? <Ru text={o} /> : o}
             </button>
           );
         })}

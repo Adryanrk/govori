@@ -5,13 +5,15 @@ import { useParams } from "next/navigation";
 import { WeekOrbit } from "@/components/WeekOrbit";
 import { Icon, Logo, Ru } from "@/components/ui";
 import { DAYS, LETTERS, getDay } from "@/content/days";
-import { learned, restDaysLeft, streak, useProgress, week } from "@/lib/progress";
+import { useAccount } from "@/lib/account";
+import { PASS_MARK, learned, restDaysLeft, streak, useProgress, week } from "@/lib/progress";
 
 export default function CompletePage() {
   const params = useParams<{ n: string }>();
   const n = Number(params.n);
   const day = getDay(n);
   const { progress, update } = useProgress();
+  const account = useAccount();
 
   if (!day || !progress) return <div className="lesson" />;
 
@@ -22,6 +24,10 @@ export default function CompletePage() {
   const { letters, words } = learned(progress);
   const next = getDay(n + 1);
   const lastDay = DAYS[DAYS.length - 1].n;
+  const result = day.check ? progress.weekChecks[day.week] : undefined;
+  const failedParts = result ? result.parts.filter((p) => !p.total || p.correct / p.total < PASS_MARK) : [];
+  const passed = !day.check || (result !== undefined && failedParts.length === 0);
+  const rerun = Array.from(new Set<number>(failedParts.flatMap((p) => day.steps.find((s) => s.part === p.name)?.reviewDays ?? []))).sort((a, b) => a - b);
 
   return (
     <div className="lesson">
@@ -37,12 +43,14 @@ export default function CompletePage() {
         <section className="hero-card night">
           <div className="rise" style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
             <span className="mono" style={{ fontSize: 13, letterSpacing: "0.14em", color: "var(--night-muted)" }}>
-              DAY {n} COMPLETE
+              {day.check ? (passed ? `WEEK ${day.week} PASSED` : `WEEK ${day.week} CHECK`) : `DAY ${n} COMPLETE`}
             </span>
             <h1 className="display" style={{ fontSize: "clamp(32px, 4vw, 52px)", lineHeight: 1.05 }}>
-              <Ru text="Молоде́ц!" />
+              <Ru text={passed ? "Молоде́ц!" : "Почти́!"} />
             </h1>
-            <span style={{ fontSize: 16, color: "var(--night-text)" }}>ma-la-DYETS · “well done!”</span>
+            <span style={{ fontSize: 16, color: "var(--night-text)" }}>
+              {passed ? "ma-la-DYETS · “well done!”" : "pach-TEE · “almost!” Your streak still counts today."}
+            </span>
           </div>
 
           <WeekOrbit dots={dots} streak={s} />
@@ -61,6 +69,42 @@ export default function CompletePage() {
 
         {/* RIGHT COLUMN */}
         <div style={{ flex: "1 1 340px", minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
+          {result && (
+            <section className="card rise-2" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Your result · 66 % per part to pass</h2>
+              {result.parts.map((pt) => {
+                const ok = pt.total > 0 && pt.correct / pt.total >= PASS_MARK;
+                const pct = pt.total ? Math.round((pt.correct / pt.total) * 100) : 0;
+                return (
+                  <div key={pt.name} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 15 }}>
+                      <span style={{ fontWeight: 600 }}>{pt.name}</span>
+                      <span className="mono" style={{ color: ok ? "var(--blue)" : "var(--red-text)", fontWeight: 500 }}>
+                        {pt.correct}/{pt.total} · {pct} % {ok ? "✓" : "✗"}
+                      </span>
+                    </div>
+                    <div className="bar" aria-hidden="true">
+                      <div style={{ width: `${pct}%`, background: ok ? "var(--blue)" : "var(--red)" }} />
+                    </div>
+                  </div>
+                );
+              })}
+              {rerun.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, paddingTop: 6 }}>
+                  <span className="muted" style={{ fontSize: 14 }}>
+                    Worth running again:
+                  </span>
+                  {rerun.map((d) => (
+                    <Link key={d} href={`/day/${d}`} className="btn btn-ghost" style={{ minHeight: 40, padding: "0 16px", fontSize: 14 }}>
+                      Day {d}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {passed && (
           <section className="card rise-2" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
             <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>What you can do now</h2>
             <div style={{ display: "flex", gap: 12 }}>
@@ -93,36 +137,31 @@ export default function CompletePage() {
               </span>
             </div>
           </section>
+          )}
 
-          <section className="card rise-3" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
-            {!progress.accountPromptDismissed ? (
-              <>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Keep your streak safe</h2>
-                  <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55 }} className="muted">
-                    Right now your progress lives only in this browser. Accounts are coming soon, so it can follow you to every device.
-                  </p>
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                  <button type="button" className="btn btn-dark" style={{ flex: "1 1 160px" }} disabled title="Coming soon">
-                    Create free account
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    style={{ flex: "1 1 120px" }}
-                    onClick={() => update((p) => ({ ...p, accountPromptDismissed: true }))}
-                  >
-                    Later
-                  </button>
-                </div>
-              </>
-            ) : (
-              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55 }} className="muted">
-                Your progress is saved in this browser. You can create an account once they launch.
-              </p>
-            )}
-          </section>
+          {account.enabled && account.ready && !account.session && !progress.accountPromptDismissed && (
+            <section className="card rise-3" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Keep your streak safe</h2>
+                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55 }} className="muted">
+                  Right now your progress lives only in this browser. A free account keeps it on every device.
+                </p>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                <Link href="/account" className="btn btn-dark" style={{ flex: "1 1 160px" }}>
+                  Create free account
+                </Link>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  style={{ flex: "1 1 120px" }}
+                  onClick={() => update((p) => ({ ...p, accountPromptDismissed: true }))}
+                >
+                  Later
+                </button>
+              </div>
+            </section>
+          )}
 
           {next ? (
             <Link href={`/day/${next.n}`} className="next-card rise-3">

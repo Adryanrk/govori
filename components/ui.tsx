@@ -36,7 +36,7 @@ export function Ru({ text, className }: { text: string; className?: string }) {
   );
 }
 
-type IconName = "arrow" | "close" | "sun" | "path" | "review" | "sound" | "check" | "moon" | "orbit" | "pen";
+type IconName = "arrow" | "close" | "sun" | "path" | "review" | "sound" | "check" | "moon" | "orbit" | "pen" | "user";
 
 const PATHS: Record<IconName, ReactNode> = {
   arrow: (
@@ -78,6 +78,12 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 3a9 9 0 0 1 0 18" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
     </>
   ),
   pen: (
