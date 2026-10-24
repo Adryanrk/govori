@@ -5,6 +5,16 @@ import { speak } from "@/lib/speak";
 import { SpeakButton } from "./SpeakButton";
 import { Icon, Ru } from "./ui";
 
+/** Three consistent text sizes by length, so long words and phrases always fit the card. */
+export function sizeFor(text: string): string {
+  const plain = text.replace(/\u0301/g, "");
+  if (/\s/.test(plain.trim())) return "huge-word is-phrase";
+  const n = [...plain].length;
+  if (n <= 8) return "huge-word";
+  if (n <= 11) return "huge-word is-long";
+  return "huge-word is-xlong";
+}
+
 export function FlipCard({ item, open, onToggle }: { item: Item; open: boolean; onToggle: () => void }) {
   const sayText = item.kind === "letter" ? item.example.ru : item.ru;
   const aria =
@@ -45,7 +55,7 @@ export function FlipCard({ item, open, onToggle }: { item: Item; open: boolean; 
               <span style={{ fontSize: "0.5em", color: "var(--muted)", marginLeft: 12 }}>{item.lower}</span>
             </span>
           ) : (
-            <Ru text={item.ru} className="huge-word" />
+            <Ru text={item.ru} className={sizeFor(item.ru)} />
           )}
           <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600, color: "var(--blue)" }}>
             Tap to reveal <Icon name="review" size={16} />
@@ -78,7 +88,7 @@ export function FlipCard({ item, open, onToggle }: { item: Item; open: boolean; 
                 className="row-between"
                 style={{ paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.14)" }}
               >
-                <Ru text={item.example.ru} className="huge-word" />
+                <Ru text={item.example.ru} className={sizeFor(item.example.ru)} />
                 <span style={{ fontSize: 14, color: "var(--night-text)" }}>
                   {item.example.tr} · {item.example.en}
                 </span>
@@ -92,7 +102,7 @@ export function FlipCard({ item, open, onToggle }: { item: Item; open: boolean; 
                 </span>
                 <SpeakButton text={item.ru} />
               </span>
-              <Ru text={item.ru} className="huge-word" />
+              <Ru text={item.ru} className={sizeFor(item.ru)} />
               <span className="row-between" style={{ paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.14)" }}>
                 <span className="mono" style={{ fontSize: 16, color: "var(--night-text)" }}>
                   {item.tr}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Icon, Logo, Ru } from "@/components/ui";
 import { HeroWord } from "@/components/HeroWord";
+import { NavLogin, StartButton } from "@/components/LandingAuth";
 
 const FALSE_FRIENDS = [
   ["В", "B", "v"],
@@ -30,10 +31,8 @@ export default function Landing() {
           <a href="#method">Method</a>
           <a href="#alphabet">Alphabet</a>
           <a href="#path">Path</a>
-          <Link href="/account">Log in</Link>
-          <Link href="/today" className="btn btn-red" style={{ minHeight: 44, padding: "0 20px", fontSize: 15 }}>
-            Start Day 1
-          </Link>
+          <NavLogin />
+          <StartButton className="btn btn-red" style={{ minHeight: 44, padding: "0 20px", fontSize: 15 }} />
         </nav>
       </header>
 
@@ -52,9 +51,7 @@ export default function Landing() {
               something new with the review that makes it stick.
             </p>
             <div className="row">
-              <Link href="/today" className="btn btn-red btn-lg">
-                Start Day 1 <Icon name="arrow" />
-              </Link>
+              <StartButton className="btn btn-red btn-lg" arrow />
               <a href="#method" className="btn btn-ghost btn-lg">
                 How it works
               </a>
@@ -221,9 +218,7 @@ export default function Landing() {
               <Ru text="Говори́" /> means “speak!”. Day 1 teaches you to read it. No account needed to try.
             </p>
           </div>
-          <Link href="/today" className="btn btn-red btn-lg">
-            Start Day 1 <Icon name="arrow" />
-          </Link>
+          <StartButton className="btn btn-red btn-lg" arrow />
         </div>
       </section>
 
